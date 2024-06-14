@@ -1,17 +1,13 @@
-// Author: TrungQuanDev: https://youtube.com/@trungquandev
 import { StatusCodes } from 'http-status-codes'
 import ms from 'ms'
+import { JwtProvider } from '../providers/JwtProvider'
+import { env } from '~/config/environment'
 
-/**
- * Mock nhanh thông tin user thay vì phải tạo Database rồi query.
- * Nếu muốn học kỹ và chuẩn chỉnh đầy đủ hơn thì xem Playlist này nhé:
- * https://www.youtube.com/playlist?list=PLP6tw4Zpj-RIMgUPYxhLBVCpaBs94D73V
- */
 const MOCK_DATABASE = {
   USER: {
-    ID: 'trungquandev-sample-id-12345678',
-    EMAIL: 'trungquandev.official@gmail.com',
-    PASSWORD: 'trungquandev@123'
+    ID: 'minatisleeping-sample-id-12345678',
+    EMAIL: 'minatisleeping.official@gmail.com',
+    PASSWORD: 'minatisleeping@123'
   }
 }
 
@@ -21,8 +17,8 @@ const MOCK_DATABASE = {
  * Ở đây mình làm Demo thôi nên mới đặt biến const và giá trị random ngẫu nhiên trong code nhé.
  * Xem thêm về biến môi trường: https://youtu.be/Vgr3MWb7aOw
  */
-const ACCESS_TOKEN_SECRET_SIGNATURE = 'KBgJwUETt4HeVD05WaXXI9V3JnwCVP'
-const REFRESH_TOKEN_SECRET_SIGNATURE = 'fcCjhnpeopVn2Hg1jG75MUi62051yL'
+const ACCESS_SECRET_SIGNATURE = env.ACCESS_TOKEN_SECRET_SIGNATURE
+const REFRESH_SECRET_SIGNATURE = env.REFRESH_TOKEN_SECRET_SIGNATURE
 
 const login = async (req, res) => {
   try {
@@ -32,8 +28,40 @@ const login = async (req, res) => {
     }
 
     // Trường hợp nhập đúng thông tin tài khoản, tạo token và trả về cho phía Client
+    // Tạo thông tin payload để đính kèm trong JWT Token: bao gồm id và email của user
+    const userInfo = {
+      id: MOCK_DATABASE.USER.ID,
+      email: MOCK_DATABASE.USER.EMAIL
+    }
 
-    res.status(StatusCodes.OK).json({ message: 'Login API success!' })
+    // Tạo Access Token
+    const accessToken = await JwtProvider.signToken(userInfo, ACCESS_SECRET_SIGNATURE, ms('15m'))
+
+    // Tạo Refresh Token
+    const refreshToken = await JwtProvider.signToken(userInfo, REFRESH_SECRET_SIGNATURE, ms('30d'))
+
+    /**
+     * Xử lý trường hợp trả về http only cookie cho phía trình duyệt
+     * Đối với cái maxAge - thời gian sống của Cookie thì chúng ta sẽ để tối đa 14 ngày, tuỳ project.
+    */
+    //! Lưu ý: Thời gian sống của Cookie khác với cái thời gian sống của token
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: ms('14 days')
+    })
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: ms('14 days')
+    })
+
+    // Trả về thông tin user cũng như sẽ trả về Token cho trường hợp phía FE cần lưu Token vào LocalStorage
+    res.status(StatusCodes.OK).json({ ...userInfo, accessToken, refreshToken })
+
+    // res.status(StatusCodes.OK).json({ message: 'Login API success!' })
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
   }
