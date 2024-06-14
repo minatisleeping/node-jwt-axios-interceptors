@@ -6,6 +6,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { corsOptions } from '~/config/corsOptions'
 import { APIs_V1 } from '~/routes/v1/'
+import { env } from './config/environment'
 
 const START_SERVER = () => {
   // Init Express App
@@ -30,11 +31,9 @@ const START_SERVER = () => {
   app.use('/v1', APIs_V1)
 
   // Should be store to env in the actual product: check here: https://youtu.be/Vgr3MWb7aOw
-  const LOCAL_DEV_APP_PORT = 8017
-  const LOCAL_DEV_APP_HOST = 'localhost'
-  const AUTHOR = 'TrungQuanDev'
-  app.listen(LOCAL_DEV_APP_PORT, LOCAL_DEV_APP_HOST, () => {
-    console.log(`Local DEV: Hello ${AUTHOR}, Back-end Server is running successfully at Host: ${LOCAL_DEV_APP_HOST} and Port: ${LOCAL_DEV_APP_PORT}`)
+  const { DB_HOST, PORT, AUTHOR } = env
+  app.listen(PORT, DB_HOST, () => {
+    console.log(`Local DEV: Hello ${AUTHOR}, Back-end Server is running successfully at http://${DB_HOST}:${PORT}`)
   })
 }
 

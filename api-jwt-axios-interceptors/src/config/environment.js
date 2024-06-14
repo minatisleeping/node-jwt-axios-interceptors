@@ -1,0 +1,10 @@
+import 'dotenv/config'
+
+export const env = {
+  ACCESS_TOKEN_SECRET_SIGNATURE:process.env.ACCESS_TOKEN_SECRET_SIGNATURE,
+  REFRESH_TOKEN_SECRET_SIGNATURE:process.env.REFRESH_TOKEN_SECRET_SIGNATURE,
+
+  PORT:process.env.LOCAL_DEV_APP_PORT,
+  DB_HOST:process.env.LOCAL_DEV_APP_HOST,
+  AUTHOR:process.env.AUTHOR
+}
