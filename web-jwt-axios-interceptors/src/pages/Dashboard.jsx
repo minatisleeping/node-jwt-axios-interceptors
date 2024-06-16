@@ -1,12 +1,10 @@
-// Author: TrungQuanDev: https://youtube.com/@trungquandev
 import { useEffect, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Divider from '@mui/material/Divider'
-import axios from 'axios'
-import { toast } from 'react-toastify'
+import authorizedAxiosInstance from '~/utils/authorizedAxios'
 import { API_ROOT } from '~/utils/constants'
 
 function Dashboard() {
@@ -14,13 +12,9 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const res = await axios.get(`${API_ROOT}/v1/dashboards/access`)
-        console.log(res.data)
-        setUser(res.data)
-      } catch (error) {
-        toast.error(error.response?.data?.message || error?.message)
-      }
+      const res = await authorizedAxiosInstance.get(`${API_ROOT}/v1/dashboards/access`)
+      console.log('🚀 ~ res.data:', res.data)
+      setUser(res.data)
     }
     fetchData()
   }, [])

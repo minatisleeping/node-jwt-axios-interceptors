@@ -1,4 +1,3 @@
-// Author: TrungQuanDev: https://youtube.com/@trungquandev
 import express from 'express'
 import { userController } from '~/controllers/userController'
 
