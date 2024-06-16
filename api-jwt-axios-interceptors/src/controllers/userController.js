@@ -6,8 +6,8 @@ import { env } from '~/config/environment'
 const MOCK_DATABASE = {
   USER: {
     ID: 'minatisleeping-sample-id-12345678',
-    EMAIL: 'minatisleeping.official@gmail.com',
-    PASSWORD: 'minatisleeping@123'
+    EMAIL: 'minatt2002@gmail.com',
+    PASSWORD: 'Minatisleeping123!'
   }
 }
 
