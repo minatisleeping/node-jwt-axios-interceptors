@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import ms from 'ms'
 import { JwtProvider } from '../providers/JwtProvider'
 import { env } from '~/config/environment'
+import { MESSAGES } from '~/config/messages'
 
 const MOCK_DATABASE = {
   USER: {
@@ -11,14 +12,19 @@ const MOCK_DATABASE = {
   }
 }
 
+/**
+ * 2 cái chữ ký bí mật quan trọng trong dự án. Dành cho JWT - Jsonwebtokens
+ * Lưu ý phải lưu vào biến môi trường ENV trong thực tế cho bảo mật.
+ * Ở đây mình làm Demo thôi nên mới đặt biến const và giá trị random ngẫu nhiên trong code nhé.
+ * Xem thêm về biến môi trường: https://youtu.be/Vgr3MWb7aOw
+ */
 const ACCESS_SECRET_SIGNATURE = env.ACCESS_TOKEN_SECRET_SIGNATURE
 const REFRESH_SECRET_SIGNATURE = env.REFRESH_TOKEN_SECRET_SIGNATURE
 
 const login = async (req, res) => {
   try {
     if (req.body.email !== MOCK_DATABASE.USER.EMAIL || req.body.password !== MOCK_DATABASE.USER.PASSWORD) {
-      res.status(StatusCodes.FORBIDDEN).json({ message: 'Your email or password is incorrect!' })
-      return
+      return res.status(StatusCodes.FORBIDDEN).json({ message: MESSAGES.LOGIN_FAILED })
     }
 
     // Trường hợp nhập đúng thông tin tài khoản, tạo token và trả về cho phía Client
@@ -29,7 +35,7 @@ const login = async (req, res) => {
     }
 
     // Tạo Access Token
-    const accessToken = await JwtProvider.signToken(userInfo, ACCESS_SECRET_SIGNATURE, ms('15m'))
+    const accessToken = await JwtProvider.signToken( userInfo, ACCESS_SECRET_SIGNATURE, '1h' )
 
     // Tạo Refresh Token
     const refreshToken = await JwtProvider.signToken(userInfo, REFRESH_SECRET_SIGNATURE, ms('30d'))
@@ -55,7 +61,7 @@ const login = async (req, res) => {
     // Trả về thông tin user cũng như sẽ trả về Token cho trường hợp phía FE cần lưu Token vào LocalStorage
     return res.status(StatusCodes.OK).json({ ...userInfo, accessToken, refreshToken })
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
   }
 }
 

@@ -3,11 +3,15 @@ import { StatusCodes } from 'http-status-codes'
 
 const access = async (req, res) => {
   try {
-    const user = { email: 'trungquandev.official@gmail.com' }
+    // const user = { email: 'trungquandev.official@gmail.com' }
+    const userInfo = {
+      id: req.jwtDecoded.id,
+      email: req.jwtDecoded.email
+    }
 
-    res.status(StatusCodes.OK).json(user)
+    return res.status(StatusCodes.OK).json(userInfo)
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
   }
 }
 
