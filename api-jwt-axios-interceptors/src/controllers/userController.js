@@ -7,16 +7,10 @@ const MOCK_DATABASE = {
   USER: {
     ID: 'minatisleeping-sample-id-12345678',
     EMAIL: 'minatt2002@gmail.com',
-    PASSWORD: 'Minatisleeping123!'
+    PASSWORD: 'Minat123!'
   }
 }
 
-/**
- * 2 cái chữ ký bí mật quan trọng trong dự án. Dành cho JWT - Jsonwebtokens
- * Lưu ý phải lưu vào biến môi trường ENV trong thực tế cho bảo mật.
- * Ở đây mình làm Demo thôi nên mới đặt biến const và giá trị random ngẫu nhiên trong code nhé.
- * Xem thêm về biến môi trường: https://youtu.be/Vgr3MWb7aOw
- */
 const ACCESS_SECRET_SIGNATURE = env.ACCESS_TOKEN_SECRET_SIGNATURE
 const REFRESH_SECRET_SIGNATURE = env.REFRESH_TOKEN_SECRET_SIGNATURE
 
@@ -59,9 +53,7 @@ const login = async (req, res) => {
     })
 
     // Trả về thông tin user cũng như sẽ trả về Token cho trường hợp phía FE cần lưu Token vào LocalStorage
-    res.status(StatusCodes.OK).json({ ...userInfo, accessToken, refreshToken })
-
-    // res.status(StatusCodes.OK).json({ message: 'Login API success!' })
+    return res.status(StatusCodes.OK).json({ ...userInfo, accessToken, refreshToken })
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
   }

@@ -13,7 +13,8 @@ function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       const res = await authorizedAxiosInstance.get(`${API_ROOT}/v1/dashboards/access`)
-      console.log('🚀 ~ res.data:', res.data)
+      console.log('🚀 ~ Data from API:', res.data)
+      console.log('🚀 ~ Data from LocalStorage:', JSON.parse(localStorage.getItem('userInfo')))
       setUser(res.data)
     }
     fetchData()
