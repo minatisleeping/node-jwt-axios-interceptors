@@ -12,19 +12,13 @@ const MOCK_DATABASE = {
   }
 }
 
-/**
- * 2 cái chữ ký bí mật quan trọng trong dự án. Dành cho JWT - Jsonwebtokens
- * Lưu ý phải lưu vào biến môi trường ENV trong thực tế cho bảo mật.
- * Ở đây mình làm Demo thôi nên mới đặt biến const và giá trị random ngẫu nhiên trong code nhé.
- * Xem thêm về biến môi trường: https://youtu.be/Vgr3MWb7aOw
- */
 const ACCESS_SECRET_SIGNATURE = env.ACCESS_TOKEN_SECRET_SIGNATURE
 const REFRESH_SECRET_SIGNATURE = env.REFRESH_TOKEN_SECRET_SIGNATURE
 
 const login = async (req, res) => {
   try {
     if (req.body.email !== MOCK_DATABASE.USER.EMAIL || req.body.password !== MOCK_DATABASE.USER.PASSWORD) {
-      return res.status(StatusCodes.FORBIDDEN).json({ message: MESSAGES.LOGIN_FAILED })
+      return res.status(StatusCodes.UNAUTHORIZED).json({ message: MESSAGES.LOGIN_FAILED })
     }
 
     // Trường hợp nhập đúng thông tin tài khoản, tạo token và trả về cho phía Client
@@ -34,10 +28,7 @@ const login = async (req, res) => {
       email: MOCK_DATABASE.USER.EMAIL
     }
 
-    // Tạo Access Token
-    const accessToken = await JwtProvider.signToken( userInfo, ACCESS_SECRET_SIGNATURE, '1h' )
-
-    // Tạo Refresh Token
+    const accessToken = await JwtProvider.signToken(userInfo, ACCESS_SECRET_SIGNATURE, '1h')
     const refreshToken = await JwtProvider.signToken(userInfo, REFRESH_SECRET_SIGNATURE, ms('30d'))
 
     /**
@@ -67,7 +58,10 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    // Do something
+    // Xoá Cookie - đơn giản là làm ngược lại so với việc gán Cookie ở hàm Login
+    res.clearCookie('accessToken')
+    res.clearCookie('refreshToken')
+
     res.status(StatusCodes.OK).json({ message: 'Logout API success!' })
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
