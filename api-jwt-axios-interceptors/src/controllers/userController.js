@@ -62,18 +62,50 @@ const logout = async (req, res) => {
     res.clearCookie('accessToken')
     res.clearCookie('refreshToken')
 
-    res.status(StatusCodes.OK).json({ message: 'Logout API success!' })
+    return res.status(StatusCodes.OK).json({ message: 'Logout API success!' })
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
   }
 }
 
 const refreshToken = async (req, res) => {
   try {
-    // Do something
-    res.status(StatusCodes.OK).json({ message: ' Refresh Token API success.' })
+    // Cách 1: Lấy luôn từ Cookie đã đính kèm vào request
+    const refreshTokenFromCookie = req.cookies?.refreshToken
+
+    // Cách 2: Lấy từ localStorage phía FE sẽ truyền vào body khi call API
+    const refreshTokenFromBody = req.body?.refreshToken
+
+    // Verify / giải mã cái refresh token xem có hợp lệ không
+    const refreshTokenDecoded = await JwtProvider.verifyToken(
+      // refreshTokenFromCookie,
+      refreshTokenFromBody,
+      env.REFRESH_TOKEN_SECRET_SIGNATURE
+    )
+
+    /* Đoạn này vì chúng ta chỉ lưu những thông tin unique và cố định của user trong token rồi, vì vậy có thể
+    lấy luôn từ decoded ra, tiết kiệm query vào DB để lấy data mới */
+    const userInfo = {
+      id: refreshTokenDecoded.id,
+      email: refreshTokenDecoded.email
+    }
+
+    // Tạo accessToken mới cho trường hợp sử dụng Cookie
+    const accessToken = await JwtProvider.signToken(userInfo, ACCESS_SECRET_SIGNATURE, '1h')
+
+    // Res lại Cookie accessToken mới cho trường hợp sử dụng Cookie
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: ms('14 days')
+    })
+
+    // Trả về accessToken mới cho trường hợp FE cần update lại trong localStorage
+    res.status(StatusCodes.OK).json({ accessToken })
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(error)
+    // console.log('🚀 ~ error:', error)
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: MESSAGES.REFRESH_TOKEN_FAILED })
   }
 }
 

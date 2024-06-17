@@ -1,4 +1,3 @@
-// Author: TrungQuanDev: https://youtube.com/@trungquandev
 import express from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { userRoute } from '~/routes/v1/userRoute'

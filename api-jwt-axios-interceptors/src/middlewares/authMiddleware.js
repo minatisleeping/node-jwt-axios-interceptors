@@ -18,12 +18,10 @@ const isAuthorized = async (req, res, next) => {
   }
 
   //*   Cách 2: Lấy accessToken trong case phía FE lưu localStorage và gửi lên thông qua header authorization
-  // const accessTokenFromHeader = req.headers.authorization
-  // console.log('🚀 ~ accessTokenFromHeader:', accessTokenFromHeader)
-  // console.log('---')
-  // if (!accessTokenFromHeader) {
-  //   return res.status(StatusCodes.UNAUTHORIZED).json({ message: MESSAGES.UNAUTHORIZED })
-  // }
+  const accessTokenFromHeader = req.headers.authorization
+  if (!accessTokenFromHeader) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({ message: MESSAGES.UNAUTHORIZED })
+  }
 
   try {
     // Bước 1: Thực hiện giải mã token xem nó có hợp lệ hay không

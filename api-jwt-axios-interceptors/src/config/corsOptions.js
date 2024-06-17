@@ -1,9 +1,3 @@
-// Author: TrungQuanDev: https://youtube.com/@trungquandev
-
-/**
- * Để demo và tập trung vào đúng nội dung chính nên phần Cors này mình không config gì nhiều.
- * Nếu muốn cấu hình CORS Option chuyên sâu hơn trong dự án thực tế thì xem Video số 62 trong chuỗi MERN Stack Pro của mình. Link: (https://youtu.be/iYgAWJ2Djkw)
- */
 export const corsOptions = {
   origin: function (origin, callback) {
     return callback(null, true)
