@@ -28,8 +28,18 @@ const login = async (req, res) => {
       email: MOCK_DATABASE.USER.EMAIL
     }
 
-    const accessToken = await JwtProvider.signToken(userInfo, ACCESS_SECRET_SIGNATURE, '1h')
-    const refreshToken = await JwtProvider.signToken(userInfo, REFRESH_SECRET_SIGNATURE, ms('30d'))
+    const accessToken = await JwtProvider.signToken(
+      userInfo,
+      ACCESS_SECRET_SIGNATURE,
+      5 // 5s
+      // '1h'
+    )
+    const refreshToken = await JwtProvider.signToken(
+      userInfo,
+      REFRESH_SECRET_SIGNATURE,
+      // 15
+      '14 days'
+    )
 
     /**
      * Xử lý trường hợp trả về http only cookie cho phía trình duyệt
@@ -82,7 +92,6 @@ const refreshToken = async (req, res) => {
       refreshTokenFromBody,
       env.REFRESH_TOKEN_SECRET_SIGNATURE
     )
-
     /* Đoạn này vì chúng ta chỉ lưu những thông tin unique và cố định của user trong token rồi, vì vậy có thể
     lấy luôn từ decoded ra, tiết kiệm query vào DB để lấy data mới */
     const userInfo = {

@@ -26,8 +26,8 @@ const isAuthorized = async (req, res, next) => {
   try {
     // Bước 1: Thực hiện giải mã token xem nó có hợp lệ hay không
     const decodedAccessToken = await JwtProvider.verifyToken(
-      accessTokenFromCookie,
-      // accessTokenFromHeader.substring('Bearer '.length),
+      // accessTokenFromCookie,
+      accessTokenFromHeader.substring('Bearer '.length),
       env.ACCESS_TOKEN_SECRET_SIGNATURE
     )
 
@@ -35,7 +35,7 @@ const isAuthorized = async (req, res, next) => {
     // để sử dụng cho các tầng cần xử lí phỉa sau
     req.jwtDecoded = decodedAccessToken
 
-    // Bước 3: Chp phép cái req đi típ :)))
+    // Bước 3: Cho phép cái req đi típ :)))
     next()
   } catch (error) {
     console.log('Error from authMiddleware ', authMiddleware)
