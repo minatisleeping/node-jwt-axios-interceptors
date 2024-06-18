@@ -30,7 +30,7 @@ function Login() {
     localStorage.setItem('refreshToken', res.data.refreshToken)
     localStorage.setItem('userInfo', JSON.stringify(userInfo))
 
-    // Điều hướng tới trang Dashboard khi login thành công
+    // Điều hướng tới trang Dashboard khi Login thành công
     navigate('/dashboard')
   }
 

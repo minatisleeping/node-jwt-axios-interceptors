@@ -8,6 +8,7 @@ import Divider from '@mui/material/Divider'
 import authorizedAxiosInstance from '~/utils/authorizedAxios'
 import { API_ROOT } from '~/utils/constants'
 import { useNavigate } from 'react-router-dom'
+import { handleLogoutAPI } from '~/apis'
 
 function Dashboard() {
   const [user, setUser] = useState(null)
@@ -24,17 +25,12 @@ function Dashboard() {
   }, [])
 
   const handleLogout = async () => {
-    // Với case 01: dùng localStorage -> chỉ xoá thông tin user trong localStorage phải FE
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('userInfo')
-
-    // Với case 02: dùng HTTP Only Cookie -> cần gọi API để remove Cookie
-    await authorizedAxiosInstance.delete(`${API_ROOT}/v1/users/logout`)
-    setUser(null)
+    await handleLogoutAPI()
+    // Nếu trường hợp dùng Cookie thì nhớ xoá userInfo trong localStorage
+    // localStorage.removeItem('userInfo')
 
     // Cuối cùng là điều hướng tới trang Login khi logout thành công
-    navigate('/login')
+    navigate('/login') // react-router-dom
   }
 
   if (!user) {
