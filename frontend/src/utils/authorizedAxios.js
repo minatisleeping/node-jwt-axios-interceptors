@@ -21,6 +21,12 @@ authorizedAxiosInstance.interceptors.request.use(config => {
   return config
 }, error => { return Promise.reject(error) })
 
+// Khởi tạo 1 cái Promise cho việc gọi API refresh token
+// Mục đích tạo Promise này để khi nhận yêu cầu refreshToken đầu tiên thì hold lại việc gọi API refresh_token
+//cho đến khi nó resolve xong thì mới retry lại những API bị lỗi trước đó thay vì cứ thế gọi lại refreshTokenAPI
+//liên tục với mỗi request lỗi
+let refreshTokenPromise = null
+
 //* Add a response interceptor: Can thiệp vào giữa các response API
 authorizedAxiosInstance.interceptors.response.use(response => {
   return response
@@ -40,40 +46,46 @@ authorizedAxiosInstance.interceptors.response.use(response => {
   // Nếu như nhận mã 410 từ BE, thì sẽ gọi API refresh token để làm mới lại accessToken
   // Đầu tiên lấy được các request API đang bị lỗi thông qua error.config
   const originalRequest = error.config
-  console.log('🚀 ~ originalRequest:', originalRequest)
+  // console.log('🚀 ~ originalRequest:', originalRequest)
 
-  if (error.response?.status === 410 && !originalRequest._retry) {
-    // Gán thêm một giá trị _retry luôn = true trong khoảng thời gian chờ, để việc refresh token
-    //này chỉ luôn gọi 1 lần tại 1 thời điểm
-    originalRequest._retry = true
+  if (error.response?.status === 410 && originalRequest) {
+    if (!refreshTokenPromise) {
+      // Lấy refreshToken từ localStorage (in case localStorage)
+      const refreshToken = localStorage.getItem('refreshToken')
+      // Gọi API refresh token
+      refreshTokenPromise = refreshTokenAPI(refreshToken)
+        .then(res => {
+          // Lấy và gán lại accessToken vào localStorage (in case localStorage)
+          const { accessToken } = res.data
+          localStorage.setItem('accessToken', accessToken)
+          authorizedAxiosInstance.defaults.headers.Authorization = `Bearer ${accessToken}abcxyz`
 
-    // Lấy refreshToken từ localStorage (in case localStorage)
-    const refreshToken = localStorage.getItem('refreshToken')
-    // Gọi API refresh token
-    return refreshTokenAPI(refreshToken)
-      .then(res => {
-        // Lấy và gán lại accessToken vào localStorage (in case localStorage)
-        const { accessToken } = res.data
-        localStorage.setItem('accessToken', accessToken)
-        authorizedAxiosInstance.defaults.headers.Authorization = `Bearer ${accessToken}abcxyz`
-
-        // Đồng thời lưu ý là accessToken cũng đã được update lại ở Cookie rồi (in case Cookie)
-
-        // Bước cuối cùng quan trong: return lại axios instance của chúng ta kết hợp cái originalRequest để
-        //gọi lại những API ban đầu bị lỗi
-        return authorizedAxiosInstance(originalRequest)
-      })
-      .catch(_error => {
-        // Nếu nhận bất cứ lỗi nào từ API refresh token thì cứ Logout luôn
-        handleLogoutAPI().then(() => {
-          // Nếu trường hợp dùng Cookie thì nhớ xoá userInfo trong localStorage
-          // localStorage.removeItem('userInfo')
-
-          // Điều hướng tới trang Login khi logout thành công
-          location.href = '/login' // js thuần
+          // Đồng thời lưu ý là accessToken cũng đã được update lại ở Cookie rồi (in case Cookie)
+          // ...
+          return authorizedAxiosInstance(originalRequest)
         })
-        return Promise.reject(_error)
-      })
+        .catch(_error => {
+          // Nếu nhận bất cứ lỗi nào từ API refresh token thì cứ Logout luôn
+          handleLogoutAPI().then(() => {
+            // Nếu trường hợp dùng Cookie thì nhớ xoá userInfo trong localStorage
+            // localStorage.removeItem('userInfo')
+
+            // Điều hướng tới trang Login khi logout thành công
+            location.href = '/login' // js thuần
+          })
+          return Promise.reject(_error)
+        })
+        .finally(() => {
+          // Dù API refresh_token có thành công hay lỗi thì vẫn gán lại refreshTokenPromise về null như ban đầu
+          refreshTokenPromise = null
+        })
+    }
+
+    // Cuối cùng mới return cá refreshTokenPromise trong trường hợp success ở đây
+    return refreshTokenPromise.then(() => {
+      // Quan trọng: return lại axios instance của ta kết hợp cái originalRequest để gọi lại những API ban đầu lỗi
+      return authorizedAxiosInstance(originalRequest)
+    })
   }
 
   // Xử lý tâp trung phần hiển thị thông báo lỗi trả về từ mọi API
